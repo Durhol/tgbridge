@@ -1,5 +1,6 @@
 package dev.vanutp.tgbridge.fabric.mixin;
 
+import dev.vanutp.tgbridge.fabric.gui.IChatScreenSuggestions;
 import dev.vanutp.tgbridge.fabric.gui.TgChatOverlay;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;

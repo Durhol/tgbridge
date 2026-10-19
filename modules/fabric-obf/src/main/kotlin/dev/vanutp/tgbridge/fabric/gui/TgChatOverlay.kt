@@ -122,7 +122,7 @@ object TgChatOverlay {
 
                 val scaledMouseX = (mouseX / scale).toInt()
                 val scaledMouseY = (mouseY / scale).toInt()
-                val isSuggestionsOpen = (mc.screen as? dev.vanutp.tgbridge.fabric.mixin.IChatScreenSuggestions)?.`tgbridge$isSuggestionsVisible`() == true
+                val isSuggestionsOpen = (mc.screen as? IChatScreenSuggestions)?.`tgbridge$isSuggestionsVisible`() == true
                 val isCoveredBySuggestions = isSuggestionsOpen && (scaledMouseX in 0..280) && (scaledMouseY in (lineY - 20)..((chatBottom / scale).toInt()))
                 val isHovered = isChatOpen && !isCoveredBySuggestions && (scaledMouseX in startX..(startX + thumbW)) && (scaledMouseY in lineY..(lineY + thumbH))
 
