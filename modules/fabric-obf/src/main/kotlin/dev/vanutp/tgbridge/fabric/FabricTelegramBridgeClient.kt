@@ -62,6 +62,10 @@ object FabricTelegramBridgeClient : ClientModInitializer {
             }
         }
 
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.JOIN.register { _, _, _ ->
+            ClientPlayNetworking.send(TgPayload(dev.vanutp.tgbridge.common.network.C2SHandshakePacket("1.0.3")))
+        }
+
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
             dispatcher.register(
                 ClientCommandManager.literal("tgbridge")

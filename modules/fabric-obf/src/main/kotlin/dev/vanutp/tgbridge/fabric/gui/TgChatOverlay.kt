@@ -256,7 +256,8 @@ object TgChatOverlay {
 
     fun onKeyPressed(keyEvent: KeyEvent, input: EditBox, screen: ChatScreen): Boolean {
         // Ctrl + V: Paste image from clipboard
-        if (keyEvent.isPaste()) {
+        val isCtrlV = keyEvent.isPaste() || (keyEvent.hasControlDown() && (keyEvent.key == 86 || keyEvent.input() == 86))
+        if (isCtrlV) {
             try {
                 val clipboard = Toolkit.getDefaultToolkit().systemClipboard
                 if (clipboard.isDataFlavorAvailable(DataFlavor.imageFlavor)) {
@@ -271,6 +272,17 @@ object TgChatOverlay {
                         }
                         TgImageManager.setAttachedImage(buffered)
                         return true
+                    }
+                }
+                if (clipboard.isDataFlavorAvailable(DataFlavor.javaFileListFlavor)) {
+                    val files = clipboard.getData(DataFlavor.javaFileListFlavor) as? List<*>
+                    val file = files?.firstOrNull() as? java.io.File
+                    if (file != null && file.isFile) {
+                        val img = javax.imageio.ImageIO.read(file)
+                        if (img != null) {
+                            TgImageManager.setAttachedImage(img)
+                            return true
+                        }
                     }
                 }
             } catch (e: Exception) {
