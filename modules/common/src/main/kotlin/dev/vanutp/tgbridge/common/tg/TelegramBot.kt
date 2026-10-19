@@ -932,6 +932,12 @@ class TelegramBot(botApiUrl: String, botToken: String, private val logger: dev.v
         return client.downloadFile(fileBaseUrl + filePath)
     }
 
+    suspend fun downloadFileBytes(fileId: String): ByteArray {
+        val resp = downloadFile(fileId)
+        val body = resp.body() ?: throw Exception("File body is null for $fileId")
+        return body.bytes()
+    }
+
     fun downloadFileAsync(fileId: String) = scope.future {
         downloadFile(fileId)
     }

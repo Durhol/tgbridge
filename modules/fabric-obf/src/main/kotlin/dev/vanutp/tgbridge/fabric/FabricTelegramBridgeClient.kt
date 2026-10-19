@@ -6,6 +6,7 @@ import com.mojang.brigadier.context.CommandContext
 import dev.vanutp.tgbridge.fabric.client.TgClientManager
 import dev.vanutp.tgbridge.fabric.image.TgImageManager
 import dev.vanutp.tgbridge.fabric.network.TgPayload
+import dev.vanutp.tgbridge.fabric.voice.TgVoiceManager
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
@@ -33,6 +34,12 @@ object FabricTelegramBridgeClient : ClientModInitializer {
     private fun onPhotoCommand(ctx: CommandContext<FabricClientCommandSource>): Int {
         val id = IntegerArgumentType.getInteger(ctx, "id")
         TgClientManager.openPhotoViewer(id)
+        return 1
+    }
+
+    private fun onVoiceCommand(ctx: CommandContext<FabricClientCommandSource>): Int {
+        val id = IntegerArgumentType.getInteger(ctx, "id")
+        TgVoiceManager.playVoiceMessage(id)
         return 1
     }
 
@@ -71,6 +78,13 @@ object FabricTelegramBridgeClient : ClientModInitializer {
                             .then(
                                 ClientCommandManager.argument("id", IntegerArgumentType.integer())
                                     .executes(::onPhotoCommand)
+                            )
+                    )
+                    .then(
+                        ClientCommandManager.literal("voice")
+                            .then(
+                                ClientCommandManager.argument("id", IntegerArgumentType.integer())
+                                    .executes(::onVoiceCommand)
                             )
                     )
                     .then(

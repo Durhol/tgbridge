@@ -44,6 +44,11 @@ object TelegramToMinecraftConverter {
                         .clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand("/tgbridge_client photo ${msg.messageId}"))
                         .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Нажмите, чтобы развернуть фото")))
                 }
+                if (it.first == msg.voice && msg is TgMessage) {
+                    comp = comp
+                        .clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand("/tgbridge_client voice ${msg.messageId}"))
+                        .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Нажмите, чтобы прослушать")))
+                }
                 inner = comp
             }
         }

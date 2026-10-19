@@ -58,12 +58,47 @@ data class S2CTelegramMessagePacket(
     val photoWidth: Int = 0,
     val photoHeight: Int = 0,
     val photoUrl: String? = null,
+    val thumbBase64: String? = null,
     val hasVoice: Boolean = false,
     val voiceFileId: String? = null,
     val voiceDuration: Int = 0,
     val hasSticker: Boolean = false,
     val stickerEmoji: String? = null,
     val stickerFileId: String? = null,
+) : TgNetworkPacket()
+
+// Client to Server: request full photo bytes
+@Serializable
+@SerialName("c2s_request_photo")
+data class C2SRequestPhotoPacket(
+    val messageId: Int,
+) : TgNetworkPacket()
+
+// Server to Client: send photo chunk
+@Serializable
+@SerialName("s2c_photo_chunk")
+data class S2CPhotoChunkPacket(
+    val messageId: Int,
+    val chunkIndex: Int,
+    val totalChunks: Int,
+    val chunkBase64: String,
+) : TgNetworkPacket()
+
+// Client to Server: request voice note bytes
+@Serializable
+@SerialName("c2s_request_voice")
+data class C2SRequestVoicePacket(
+    val messageId: Int,
+) : TgNetworkPacket()
+
+// Server to Client: send voice chunk
+@Serializable
+@SerialName("s2c_voice_chunk")
+data class S2CVoiceChunkPacket(
+    val messageId: Int,
+    val chunkIndex: Int,
+    val totalChunks: Int,
+    val chunkBase64: String,
 ) : TgNetworkPacket()
 
 // Client to Server Send Reply to a specific TG message
@@ -83,11 +118,33 @@ data class C2SSendPhotoPacket(
     val replyToMessageId: Int? = null,
 ) : TgNetworkPacket()
 
+@Serializable
+@SerialName("c2s_photo_chunk")
+data class C2SSendPhotoChunkPacket(
+    val uploadId: String,
+    val chunkIndex: Int,
+    val totalChunks: Int,
+    val chunkBase64: String,
+    val caption: String = "",
+    val replyToMessageId: Int? = null,
+) : TgNetworkPacket()
+
 // Client to Server Send Voice Note (OGG Opus)
 @Serializable
 @SerialName("c2s_voice")
 data class C2SSendVoicePacket(
     val voiceOggBase64: String,
+    val duration: Int = 0,
+    val replyToMessageId: Int? = null,
+) : TgNetworkPacket()
+
+@Serializable
+@SerialName("c2s_voice_chunk")
+data class C2SSendVoiceChunkPacket(
+    val uploadId: String,
+    val chunkIndex: Int,
+    val totalChunks: Int,
+    val chunkBase64: String,
     val duration: Int = 0,
     val replyToMessageId: Int? = null,
 ) : TgNetworkPacket()

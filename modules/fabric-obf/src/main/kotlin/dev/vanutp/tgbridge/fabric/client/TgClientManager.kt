@@ -4,10 +4,12 @@ import dev.vanutp.tgbridge.common.network.*
 import dev.vanutp.tgbridge.fabric.gui.ImageViewerScreen
 import dev.vanutp.tgbridge.fabric.image.TgImageManager
 import dev.vanutp.tgbridge.fabric.network.TgPayload
+import dev.vanutp.tgbridge.fabric.voice.TgVoiceManager
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.ChatScreen
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
 data class ReplyContext(
@@ -20,6 +22,8 @@ object TgClientManager {
     var isConnectedToServerMod = false
     var activeReply: ReplyContext? = null
     val telegramUsers = CopyOnWriteArrayList<String>()
+
+    private val pendingVoiceChunks = ConcurrentHashMap<Int, Array<String?>>()
 
     fun handlePacket(packet: TgNetworkPacket) {
         when (packet) {
@@ -35,10 +39,34 @@ object TgClientManager {
 
             is S2CTelegramMessagePacket -> {
                 if (packet.hasPhoto) {
-                    TgImageManager.loadPhoto(packet)
+                    TgImageManager.loadPhotoFromPacket(packet)
                 }
                 if (!telegramUsers.contains(packet.senderName)) {
                     telegramUsers.add(packet.senderName)
+                }
+            }
+
+            is S2CPhotoChunkPacket -> {
+                TgImageManager.handlePhotoChunk(
+                    packet.messageId,
+                    packet.chunkIndex,
+                    packet.totalChunks,
+                    packet.chunkBase64
+                )
+            }
+
+            is S2CVoiceChunkPacket -> {
+                val chunks = pendingVoiceChunks.computeIfAbsent(packet.messageId) { arrayOfNulls(packet.totalChunks) }
+                chunks[packet.chunkIndex] = packet.chunkBase64
+                if (chunks.all { it != null }) {
+                    pendingVoiceChunks.remove(packet.messageId)
+                    val fullBase64 = chunks.joinToString("")
+                    try {
+                        val bytes = Base64.getDecoder().decode(fullBase64)
+                        TgVoiceManager.handleVoiceChunk(packet.messageId, bytes)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             }
 
@@ -47,6 +75,7 @@ object TgClientManager {
     }
 
     fun openPhotoViewer(messageId: Int) {
+        TgImageManager.requestFullPhoto(messageId)
         Minecraft.getInstance().execute {
             Minecraft.getInstance().setScreen(ImageViewerScreen(messageId))
         }
@@ -71,12 +100,64 @@ object TgClientManager {
     }
 
     fun sendPhoto(photoBytes: ByteArray, caption: String, replyToMessageId: Int? = null) {
-        val base64 = Base64.getEncoder().encodeToString(photoBytes)
-        ClientPlayNetworking.send(TgPayload(C2SSendPhotoPacket(base64, caption, replyToMessageId)))
+        Thread({
+            try {
+                val base64 = Base64.getEncoder().encodeToString(photoBytes)
+                val chunkSize = 12000
+                val totalChunks = (base64.length + chunkSize - 1) / chunkSize
+                val uploadId = UUID.randomUUID().toString()
+
+                for (i in 0 until totalChunks) {
+                    val start = i * chunkSize
+                    val end = minOf(base64.length, start + chunkSize)
+                    val chunk = base64.substring(start, end)
+                    val packet = C2SSendPhotoChunkPacket(
+                        uploadId = uploadId,
+                        chunkIndex = i,
+                        totalChunks = totalChunks,
+                        chunkBase64 = chunk,
+                        caption = if (i == 0) caption else "",
+                        replyToMessageId = replyToMessageId,
+                    )
+                    Minecraft.getInstance().execute {
+                        ClientPlayNetworking.send(TgPayload(packet))
+                    }
+                    Thread.sleep(10)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }, "TgPhotoUploader").start()
     }
 
     fun sendVoice(voiceOggBytes: ByteArray, duration: Int, replyToMessageId: Int? = null) {
-        val base64 = Base64.getEncoder().encodeToString(voiceOggBytes)
-        ClientPlayNetworking.send(TgPayload(C2SSendVoicePacket(base64, duration, replyToMessageId)))
+        Thread({
+            try {
+                val base64 = Base64.getEncoder().encodeToString(voiceOggBytes)
+                val chunkSize = 12000
+                val totalChunks = (base64.length + chunkSize - 1) / chunkSize
+                val uploadId = UUID.randomUUID().toString()
+
+                for (i in 0 until totalChunks) {
+                    val start = i * chunkSize
+                    val end = minOf(base64.length, start + chunkSize)
+                    val chunk = base64.substring(start, end)
+                    val packet = C2SSendVoiceChunkPacket(
+                        uploadId = uploadId,
+                        chunkIndex = i,
+                        totalChunks = totalChunks,
+                        chunkBase64 = chunk,
+                        duration = duration,
+                        replyToMessageId = replyToMessageId,
+                    )
+                    Minecraft.getInstance().execute {
+                        ClientPlayNetworking.send(TgPayload(packet))
+                    }
+                    Thread.sleep(10)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }, "TgVoiceUploader").start()
     }
 }
