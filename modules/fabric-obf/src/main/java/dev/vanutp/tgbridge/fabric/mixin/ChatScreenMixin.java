@@ -16,11 +16,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ChatScreen.class)
-public abstract class ChatScreenMixin extends Screen {
+public abstract class ChatScreenMixin extends Screen implements IChatScreenSuggestions {
     @Shadow protected EditBox input;
+    @Shadow net.minecraft.client.gui.components.CommandSuggestions commandSuggestions;
 
     protected ChatScreenMixin(Component title) {
         super(title);
+    }
+
+    @Override
+    public boolean tgbridge$isSuggestionsVisible() {
+        return commandSuggestions != null && commandSuggestions.isVisible();
     }
 
     @Inject(method = "render", at = @At("TAIL"))
@@ -37,6 +43,9 @@ public abstract class ChatScreenMixin extends Screen {
 
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
     private void tgbridge$onMouseClicked(MouseButtonEvent mouseEvent, boolean isDoubleClick, CallbackInfoReturnable<Boolean> cir) {
+        if (commandSuggestions != null && commandSuggestions.mouseClicked(mouseEvent)) {
+            return;
+        }
         if (TgChatOverlay.INSTANCE.onMouseClicked(mouseEvent, isDoubleClick, input, (ChatScreen) (Object) this)) {
             cir.setReturnValue(true);
         }

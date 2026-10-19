@@ -27,8 +27,6 @@ public abstract class ChatComponentMixin {
 
     @Inject(method = "render", at = @At("TAIL"))
     private void tgbridge$renderChatThumbnails(GuiGraphics guiGraphics, Font font, int tickCount, int mouseX, int mouseY, boolean focused, boolean isChatOpen, CallbackInfo ci) {
-        if (!focused) {
-            TgChatOverlay.INSTANCE.renderChatThumbnails(guiGraphics, -1, -1, false);
-        }
+        TgChatOverlay.INSTANCE.renderChatThumbnails(guiGraphics, mouseX, mouseY, isChatOpen);
     }
 }

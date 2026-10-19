@@ -122,7 +122,9 @@ object TgChatOverlay {
 
                 val scaledMouseX = (mouseX / scale).toInt()
                 val scaledMouseY = (mouseY / scale).toInt()
-                val isHovered = isChatOpen && (scaledMouseX in startX..(startX + thumbW)) && (scaledMouseY in lineY..(lineY + thumbH))
+                val isSuggestionsOpen = (mc.screen as? dev.vanutp.tgbridge.fabric.mixin.IChatScreenSuggestions)?.`tgbridge$isSuggestionsVisible`() == true
+                val isCoveredBySuggestions = isSuggestionsOpen && (scaledMouseX in 0..280) && (scaledMouseY in (lineY - 20)..((chatBottom / scale).toInt()))
+                val isHovered = isChatOpen && !isCoveredBySuggestions && (scaledMouseX in startX..(startX + thumbW)) && (scaledMouseY in lineY..(lineY + thumbH))
 
                 val texture = TgImageManager.textures[foundPhotoId]
                 TgIcons.drawMiniatureThumbnail(guiGraphics, texture, startX, lineY, thumbW, thumbH, isHovered)
@@ -143,8 +145,8 @@ object TgChatOverlay {
     fun render(guiGraphics: GuiGraphics, input: EditBox, width: Int, height: Int, mouseX: Int, mouseY: Int) {
         val font = Minecraft.getInstance().font
 
-        // 1. Render miniatures in chat lines
-        renderChatThumbnails(guiGraphics, mouseX, mouseY, true)
+        // Note: Chat line thumbnails are rendered in ChatComponent.render via ChatComponentMixin
+        // so that CommandSuggestions (autocomplete) naturally and correctly renders on top of thumbnails.
 
         // 2. Action buttons next to chat input
         val clipX = width - 36
