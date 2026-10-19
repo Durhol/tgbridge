@@ -18,14 +18,19 @@ sealed class TgNetworkPacket {
     fun toBytes(): ByteArray = networkJson.encodeToString(this).toByteArray(Charsets.UTF_8)
 
     companion object {
-        fun fromBytes(bytes: ByteArray): TgNetworkPacket? = try {
+        fun fromBytes(bytes: ByteArray): TgNetworkPacket = try {
             val str = String(bytes, Charsets.UTF_8)
             networkJson.decodeFromString<TgNetworkPacket>(str)
-        } catch (_: Exception) {
-            null
+        } catch (e: Exception) {
+            UnknownPacket(e.message ?: "decode_error")
         }
     }
 }
+
+@Serializable
+@SerialName("unknown")
+data class UnknownPacket(val error: String = "") : TgNetworkPacket()
+
 
 // Server to Client Handshake
 @Serializable

@@ -22,7 +22,6 @@ class TgPayload(val packet: TgNetworkPacket) : CustomPacketPayload {
                 val bytes = ByteArray(buf.readableBytes())
                 buf.readBytes(bytes)
                 val pkt = TgNetworkPacket.fromBytes(bytes)
-                    ?: throw IllegalArgumentException("Invalid tgbridge packet")
                 TgPayload(pkt)
             }
         )
