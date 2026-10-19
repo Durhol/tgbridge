@@ -1,67 +1,81 @@
-<p align="right">
-🌍 English / <a href="https://github.com/vanutp/tgbridge/blob/master/README-ru.md">Русский</a>
-</p>
+# 📱 Telegram Bridge (Paper & Multiplatform Fork)
 
 <div align="center">
 
-# Minecraft Telegram Bridge
-</div>
+[![Minecraft 1.21.11](https://img.shields.io/badge/Minecraft-1.21.11-brightgreen.svg)](https://minecraft.net/)
+[![Platform Paper](https://img.shields.io/badge/Platform-Paper%20%7C%20Fabric%20%7C%20NeoForge-blue.svg)](https://papermc.io/)
+[![Client Companion](https://img.shields.io/badge/Companion_Mod-tgbridge--client-55aaff.svg?logo=fabric)](https://github.com/Durhol/tgbridge-client)
+[![License MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GitHub Releases](https://img.shields.io/badge/Release-v0.9.14-informational.svg)](https://github.com/Durhol/tgbridge/releases)
 
 <p align="center">
-A feature-rich multiloader mod to sync Telegram and Minecraft chats
+  <img src="icon.png" width="128" height="128" alt="Telegram Bridge Icon">
 </p>
 
-<div align="center">
+**Telegram Bridge** is a feature-rich, high-performance bridge synchronizing Minecraft and Telegram chats.
 
-[![Modrinth - Downloads](https://img.shields.io/modrinth/dt/tgbridge?style=for-the-badge&logo=modrinth&label=Download)](https://modrinth.com/mod/tgbridge)
-[![Client Mod](https://img.shields.io/badge/Client_Mod-tgbridge--client-00b0ff?style=for-the-badge&logo=fabric&logoColor=white)](https://github.com/Durhol/tgbridge-client)
-[![Docs](https://img.shields.io/website?url=https%3A%2F%2Ftgbridge.vanutp.dev&style=for-the-badge&label=Docs&color=%238b00dd)](https://tgbridge.vanutp.dev/)
-[![Telegram chat](https://raw.githubusercontent.com/vanutp/tgbridge/refs/heads/master/docs/public/chat-badge.svg)](https://t.me/tgbridge_chat)
+This is an enhanced fork of [vanutp/tgbridge](https://github.com/vanutp/tgbridge) maintained by **Durhol**, updated for Minecraft 1.21.11 and featuring rich bidirectional media networking with the companion [**tgbridge-client (Fabric)**](https://github.com/Durhol/tgbridge-client) mod.
+
 </div>
 
-https://github.com/vanutp/tgbridge/assets/11143488/697a6d5d-1f2c-4156-bf8d-140446a83f5e
+---
 
-> [!NOTE]
-> **This is an enhanced fork maintained by [@Durhol](https://github.com/Durhol).**
-> Original plugin author: [@vanutp](https://github.com/vanutp) ([vanutp/tgbridge](https://github.com/vanutp/tgbridge)).
->
-> 🚀 **Enhanced with Client Mod Support!** While this plugin still works completely out-of-the-box for vanilla players, it unlocks rich interactive capabilities when paired with the companion [**tgbridge-client mod (Fabric)**](https://github.com/Durhol/tgbridge-client).
+## 🚀 What's New in this Fork?
 
-## Enhanced Features (with [tgbridge-client](https://github.com/Durhol/tgbridge-client))
+While preserving 100% backward compatibility for vanilla players (who see clickable fallback indicators like `[Photo]` and `[Voice Message]`), this fork enables rich multimedia communication when paired with the companion [**tgbridge-client**](https://github.com/Durhol/tgbridge-client) mod:
 
-- **🖼️ In-Chat Photo Thumbnails**: Photos sent from Telegram appear as miniature inline previews right inside Minecraft chat without external CDN latency.
-- **🔍 Fullscreen Image Viewer**: Click any photo thumbnail to open a sleek fullscreen viewer with zooming and full-resolution streaming.
-- **📋 Clipboard Photo Upload (Ctrl + V)**: Paste screenshots directly in Minecraft chat to send photos straight to your Telegram chat/topic.
-- **🎙️ Voice Messages in Minecraft**: Record voice messages from Minecraft chat and listen to Telegram voice notes directly in-game.
-- **💬 Reply Context UI**: Visual quote and reply bar with smooth chat navigation.
-- **🎨 Custom Pixel-Art Icons**: Clean vector/pixel UI for attachments, microphone, and replies without emojis.
+* 🖼️ **Zero-Latency In-Chat Thumbnails:** The server generates lightweight 32x20 image thumbnails embedded directly into network packets. Modded clients render photo previews instantly without external HTTP delays or exposing Telegram bot tokens.
+* 📦 **Safe Chunked Media Streaming:** Both photos and voice messages are transferred between client and server in 12 KB chunks, completely bypassing Minecraft's strict 32 KB `CustomPacketPayload` disconnect limits.
+* 🎙️ **Voice Messages in Game:** Incoming Telegram voice notes are downloaded, cached, and streamed on-demand to players who click `[Voice Message]`.
+* 📋 **In-Game Photo Uploads:** Modded clients can paste screenshots (`Ctrl + V`) directly into chat and upload them to Telegram topics.
+* 💬 **Reply & Mention Sync:** Two-way message quoting and replies.
 
-## Features
+---
 
-- Supports Fabric, (Neo)Forge and Paper
-- Aims to support most of the mods and plugins
-- Supports Telegram topics (bot will work only in its dedicated topic)
-- Every feature can be toggled or configured
-- A lot more! See https://tgbridge.vanutp.dev/en/features for the full list
+## 📸 Core Features
 
-## Quick start
+- **Multiplatform:** Supports Paper, Fabric, Forge, and NeoForge.
+- **Telegram Topics:** Full support for dedicated forum topics in Telegram supergroups.
+- **Bi-directional Sync:** Minecraft chat $\leftrightarrow$ Telegram messages.
+- **Event Forwarding:** Player join/leave messages, deaths, and advancements.
+- **Highly Configurable:** Granular toggles for message formatting, filters, webhook/long-polling, and permissions.
 
-See https://tgbridge.vanutp.dev/en/quickstart
+---
 
-## Contributions
+## 🛠️ Server Installation
 
-Want to help the project? Here's how you can help:
+1. Download the latest `tgbridge-0.9.14-paper.jar` from [Releases](https://github.com/Durhol/tgbridge/releases).
+2. Place the JAR into your server's `plugins/` directory.
+3. Start the server once to generate `plugins/tgbridge/config.yml`.
+4. Insert your Telegram Bot token and target chat/topic ID into `config.yml`.
+5. Restart the server.
+6. *(Recommended)* Tell your players to install the [**tgbridge-client**](https://github.com/Durhol/tgbridge-client) mod for inline photo previews, fullscreen viewer, and voice notes!
 
-- **⭐️ the repository**: Your support is important to me :)
-- **Open an issue**: Open an issue to suggest improvements or report bugs. You can also post suggestions in the [Telegram chat](https://t.me/tgbridge_chat)
-- **Vote for features**: Leave a 👍 on an issue if you are interested in the feature
-- Before working on a pull request, please discuss your proposed 
-  changes in an issue first — this helps avoid duplicate work and ensures your contribution
-  aligns with the project goals
+---
 
-## Acknowledgements
+## 🔨 Building from Source
 
-This project is inspired by these projects:
+```bash
+git clone https://github.com/Durhol/tgbridge.git
+cd tgbridge
+./gradlew :paper:assemble      # On Linux/macOS
+.\gradlew.bat :paper:assemble  # On Windows
+```
 
-- https://github.com/CuteNekoOwO/FabricTgBridge
-- https://github.com/ntoneee/minecraft-telegram-bridge
+The compiled plugin will be at `modules/paper/build/libs/tgbridge-paper-0.9.14.jar` (and in `build/release/`).
+
+---
+
+## 👤 Author & Contacts
+
+* **Fork Author & Enhancements:** Durhol
+* **Telegram:** [@tyxap](https://t.me/tyxap) or [@Durhol](https://t.me/Durhol)
+* **GitHub:** [https://github.com/Durhol](https://github.com/Durhol)
+* **Original Plugin Author:** [@vanutp](https://github.com/vanutp) ([vanutp/tgbridge](https://github.com/vanutp/tgbridge))
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
+Original code copyright (c) 2021-2024 vanutp. Enhancements copyright (c) 2026 Durhol.

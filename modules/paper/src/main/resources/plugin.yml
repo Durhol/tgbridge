@@ -2,6 +2,8 @@ name: tgbridge
 version: '${version}'
 main: dev.vanutp.tgbridge.paper.PaperBootstrap
 api-version: '1.19'
+authors: [vanutp, Durhol]
+website: https://github.com/Durhol/tgbridge
 folia-supported: true
 commands:
   tgbridge:
