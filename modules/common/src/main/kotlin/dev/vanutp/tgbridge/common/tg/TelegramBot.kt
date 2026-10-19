@@ -99,12 +99,41 @@ data class TgMessageOrigin(
     val chat: TgChat? = null,
 )
 
+@Serializable
+data class TgPhotoSize(
+    @SerialName("file_id")
+    val fileId: String,
+    @SerialName("file_unique_id")
+    val fileUniqueId: String,
+    val width: Int,
+    val height: Int,
+    @SerialName("file_size")
+    val fileSize: Int? = null,
+)
+
+@Serializable
+data class TgSticker(
+    @SerialName("file_id")
+    val fileId: String,
+    @SerialName("file_unique_id")
+    val fileUniqueId: String,
+    val width: Int,
+    val height: Int,
+    @SerialName("is_animated")
+    val isAnimated: Boolean = false,
+    @SerialName("is_video")
+    val isVideo: Boolean = false,
+    val emoji: String? = null,
+    @SerialName("set_name")
+    val setName: String? = null,
+)
+
 interface TgMessageMedia {
     val animation: TgAny?
-    val photo: List<TgAny>?
+    val photo: List<TgPhotoSize>?
     val audio: TgAny?
     val document: TgAny?
-    val sticker: TgAny?
+    val sticker: TgSticker?
     val video: TgAny?
     val videoNote: TgAny?
     val voice: TgVoice?
@@ -116,10 +145,10 @@ data class TgExternalReplyInfo(
     val origin: TgMessageOrigin,
     val chat: TgChat? = null,
     override val animation: TgAny? = null,
-    override val photo: List<TgAny>? = null,
+    override val photo: List<TgPhotoSize>? = null,
     override val audio: TgAny? = null,
     override val document: TgAny? = null,
-    override val sticker: TgAny? = null,
+    override val sticker: TgSticker? = null,
     override val video: TgAny? = null,
     @SerialName("video_note")
     override val videoNote: TgAny? = null,
@@ -127,6 +156,7 @@ data class TgExternalReplyInfo(
     override val poll: TgPoll? = null,
 ) : TgMessageMedia {
     val senderName
+
         get() = origin.senderUser?.fullName
             ?: origin.senderUserName
             ?: origin.senderChat?.title
@@ -248,10 +278,10 @@ data class TgMessage(
     @SerialName("caption_entities")
     val captionEntities: List<TgEntity>? = null,
     override val animation: TgAny? = null,
-    override val photo: List<TgAny>? = null,
+    override val photo: List<TgPhotoSize>? = null,
     override val audio: TgAny? = null,
     override val document: TgAny? = null,
-    override val sticker: TgAny? = null,
+    override val sticker: TgSticker? = null,
     override val video: TgAny? = null,
     @SerialName("video_note")
     override val videoNote: TgAny? = null,
@@ -368,6 +398,16 @@ data class TgDeleteMessageRequest(
     val messageId: Int,
 )
 
+@Serializable
+data class TgSendStickerRequest(
+    @SerialName("chat_id")
+    val chatId: Long,
+    @SerialName("sticker")
+    val sticker: String,
+    @SerialName("reply_to_message_id")
+    val replyToMessageId: Int? = null,
+)
+
 class TelegramException(val responseBody: String?) : Exception(
     "Telegram exception: ${responseBody ?: "no response body"}"
 )
@@ -378,6 +418,20 @@ interface TgApi {
 
     @POST("sendMessage")
     suspend fun sendMessage(@Body data: TgSendMessageRequest): TgResponse<TgMessage>
+
+    @Multipart
+    @POST("sendPhoto")
+    suspend fun sendPhoto(
+        @Part("chat_id") chatId: RequestBody,
+        @Part photo: MultipartBody.Part,
+        @Part("caption") caption: RequestBody?,
+        @Part("caption_entities") captionEntities: RequestBody?,
+        @Part("reply_to_message_id") replyToMessageId: RequestBody?,
+        @Part("parse_mode") parseMode: RequestBody?,
+    ): TgResponse<TgMessage>
+
+    @POST("sendSticker")
+    suspend fun sendSticker(@Body data: TgSendStickerRequest): TgResponse<TgMessage>
 
     @Multipart
     @POST("sendVoice")
@@ -797,6 +851,77 @@ class TelegramBot(botApiUrl: String, botToken: String, private val logger: dev.v
         deleteMessage(chatId, messageId)
     }
 
+    suspend fun sendPhoto(
+        chatId: Long,
+        photo: ByteArray,
+        photoFileName: String = "photo.jpg",
+        caption: String? = null,
+        captionEntities: List<TgEntity>? = null,
+        replyToMessageId: Int? = null,
+        parseMode: String? = null,
+    ): TgMessage = retriableCall {
+        val photoFile = photo.toRequestBody(MultipartBody.FORM, 0, photo.size)
+        val requestPhoto = MultipartBody.Part.createFormData(
+            "photo",
+            photoFileName,
+            photoFile
+        )
+        val chatIdBody = chatId.toString().toRequestBody(MultipartBody.FORM)
+        val captionBody = caption?.toRequestBody(MultipartBody.FORM)
+        val captionEntitiesBody =
+            captionEntities?.let { json.encodeToString(it).toRequestBody(MultipartBody.FORM) }
+        val replyToMessageIdBody = replyToMessageId?.toString()?.toRequestBody(MultipartBody.FORM)
+        val parseModeBody = parseMode?.toRequestBody(MultipartBody.FORM)
+        client.sendPhoto(
+            chatIdBody,
+            requestPhoto,
+            captionBody,
+            captionEntitiesBody,
+            replyToMessageIdBody,
+            parseModeBody,
+        )
+    }
+
+    fun sendPhotoAsync(
+        chatId: Long,
+        photo: ByteArray,
+        photoFileName: String = "photo.jpg",
+        caption: String? = null,
+        captionEntities: List<TgEntity>? = null,
+        replyToMessageId: Int? = null,
+        parseMode: String? = null,
+    ) = scope.future {
+        sendPhoto(chatId, photo, photoFileName, caption, captionEntities, replyToMessageId, parseMode)
+    }
+
+    suspend fun sendSticker(
+        chatId: Long,
+        stickerFileId: String,
+        replyToMessageId: Int? = null,
+    ): TgMessage = retriableCall {
+        client.sendSticker(
+            TgSendStickerRequest(
+                chatId = chatId,
+                sticker = stickerFileId,
+                replyToMessageId = replyToMessageId,
+            )
+        )
+    }
+
+    fun sendStickerAsync(
+        chatId: Long,
+        stickerFileId: String,
+        replyToMessageId: Int? = null,
+    ) = scope.future {
+        sendSticker(chatId, stickerFileId, replyToMessageId)
+    }
+
+    suspend fun getFileDownloadUrl(fileId: String): String {
+        val file = call { client.getFile(fileId) }
+        val filePath = file.filePath ?: throw Exception("File path is null for $fileId")
+        return fileBaseUrl + filePath
+    }
+
     suspend fun downloadFile(fileId: String): Response<ResponseBody> {
         val file = call { client.getFile(fileId) }
         val filePath = file.filePath
@@ -811,3 +936,4 @@ class TelegramBot(botApiUrl: String, botToken: String, private val logger: dev.v
         downloadFile(fileId)
     }
 }
+

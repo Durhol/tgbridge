@@ -12,6 +12,9 @@
     "ServerPlayerMixin_215",
     "ServerPlayerMixin_modern"
   ],
+  "client": [
+    "ChatScreenMixin"
+  ],
   "plugin": "dev.vanutp.tgbridge.fabric.TgbridgeMixinPlugin",
   "injectors": {
     "defaultRequire": 1

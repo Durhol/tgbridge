@@ -38,7 +38,13 @@ object TelegramToMinecraftConverter {
             msg.voice to lang.minecraft.messageMeta.voiceMessage,
         ).forEach {
             if (it.first != null) {
-                inner = it.second.formatMiniMessage()
+                var comp = it.second.formatMiniMessage()
+                if (it.first == msg.photo && msg is TgMessage) {
+                    comp = comp
+                        .clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand("/tgbridge_client photo ${msg.messageId}"))
+                        .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Нажмите, чтобы развернуть фото")))
+                }
+                inner = comp
             }
         }
 
@@ -319,6 +325,11 @@ object TelegramToMinecraftConverter {
         replyToText(msg, botId)?.let { components.add(it) }
         mediaToText(msg)?.let { components.add(it) }
         msg.tgText?.let { components.add(formattedTextToComponent(it.text, it.entities)) }
+        val replyButton = Component.text("↩")
+            .color(net.kyori.adventure.text.format.NamedTextColor.DARK_GRAY)
+            .clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand("/tgbridge_client reply ${msg.messageId}"))
+            .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Нажмите, чтобы ответить")))
+        components.add(replyButton)
 
         return components
             .flatMap { listOf(it, Component.text(" ")) }

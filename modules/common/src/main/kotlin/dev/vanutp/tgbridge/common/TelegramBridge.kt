@@ -22,7 +22,7 @@ import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
 abstract class TelegramBridge {
-    internal val coroutineScope = CoroutineScope(Dispatchers.IO)
+    val coroutineScope = CoroutineScope(Dispatchers.IO)
         .plus(SupervisorJob())
         .plus(CoroutineExceptionHandler { _, e ->
             logger.error("An unexpected error occurred", e)

@@ -25,13 +25,20 @@ class VoiceChatPlugin : VoicechatPlugin {
     override fun getPluginId() = "tgbridge"
 
     companion object {
-        internal lateinit var api: VoicechatApi private set
-        internal lateinit var decoder: OpusDecoder
-        internal lateinit var encoder: OpusEncoder
+        var api: VoicechatApi? = null
+            private set
+        var decoder: OpusDecoder? = null
+            private set
+        var encoder: OpusEncoder? = null
+            private set
+
+        fun isInitialized() = api != null
 
         fun transcodeOpus(packets: List<ByteArray>) =
-            packets.map {
-                encoder.encode(decoder.decode(it))
+            packets.mapNotNull {
+                val dec = decoder ?: return@mapNotNull null
+                val enc = encoder ?: return@mapNotNull null
+                enc.encode(dec.decode(it))
             }
     }
 

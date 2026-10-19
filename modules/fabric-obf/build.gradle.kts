@@ -14,6 +14,7 @@ val vanishVersion: String by project
 
 repositories {
 	maven("https://api.modrinth.com/maven")
+	maven("https://maven.maxhenkel.de/repository/public")
 }
 
 dependencies {
@@ -29,6 +30,7 @@ dependencies {
     implementation(project(":common-jvm21"))
 	shadow(project(":common-jvm21"))
 
+	compileOnly("de.maxhenkel.voicechat:voicechat-api:2.5.31")
 	modCompileOnly("maven.modrinth:vanish:$vanishVersion")
 }
 
